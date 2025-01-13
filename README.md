@@ -16,20 +16,29 @@ you could get things up and running yourself pretty quickly.
 > This is a hobby project. My main focus is to get things up and running for myself, not that it works without effort for anybody else.
 > But feel free to use as much as you'd like from it.
 
-## TODOs/Roadmap
+## Status
 
-As this is early stage, tools and approaches might change along the way, but the plan in May 2024 looks something like this:
+For me this project is more or less complete, and the pipelines running in Github Actions has yet to fail on me. I regularly go into the Streamlit Dashboard to evaluate stocks, usually in mix with content from from other sources like Yahoo Finance (free) and Motley Fool (paid).
 
-- [ ] Backfill [Motherduck](https://motherduck.com/) DB with all US stocks daily adjusted as listed in this file: https://apimedia.tiingo.com/docs/tiingo/daily/supported_tickers.zip
-- [ ] Create daily batch job to updated with yesterday's data. Use Go and run job on GitHub Actions. Endpoint: https://api.tiingo.com/tiingo/daily/prices
-- [ ] Subscribe to the Tiingo $10/month add-on for fundamentals, run backfill for all available stocks and schedule daily fundamentals ingest (Go+Github Actions).
+However, it may be that I'll add some more dashboards or predictors to the models, but this might go largely undocumented.
+
+
+### TODOs/Roadmap
+
+January 2025: Even though I did not end up using many of the things below (most notably Malloy and Observable Framework), I decided to keep them there for transparency.
+
+- [x] Backfill [Motherduck](https://motherduck.com/) DB with all US stocks daily adjusted as listed in this file: https://apimedia.tiingo.com/docs/tiingo/daily/supported_tickers.zip
+- [x] Create daily batch job to updated with yesterday's data. Use Go and run job on GitHub Actions. Endpoint: https://api.tiingo.com/tiingo/daily/prices
+- [x] Subscribe to the Tiingo $10/month add-on for fundamentals, run backfill for all available stocks and schedule daily fundamentals ingest (Go+Github Actions).
 - ~~[ ] Use [Malloy](https://docs.malloydata.dev/documentation/) for transformations.~~
   - UPDATE May 2024: Played around with Malloy a bit, and it is currently not expressive/flexible enough for all the transformations I had in mind,
     in particular it seemed to have little support for common time series operations. New plan is:
-- [ ] Use DuckDB SQL for transformations. DuckDB SQL looks like an impressive improvement to standard SQL; I am optimistic
+- [x] Use DuckDB SQL for transformations. DuckDB SQL looks like an impressive improvement to standard SQL; I am optimistic
   it can provide enough flexibility, reusability and composability to not be frustrating to work with. Goal is to move
   reusable logic into `MACRO`s and `FUNCTION`s, and run unit tests on logic via Pytest.
-- [ ] Create visualizations, tables, dashboards and notebooks in [Observable Framework](https://observablehq.com/framework/).
-- [ ] Use [Malloy](https://docs.malloydata.dev/documentation/) for the semantic layer/metrics definitions, which will be used by the Observable Framework front-end.
-- [ ] Orchestrate statistical and machine learning models with [dagster](https://dagster.io/) running on Github Actions and save results to Motherduck DB.
-
+~~- [ ] Create visualizations, tables, dashboards and notebooks in [Observable Framework](https://observablehq.com/framework/).~~
+  - UPDATE: I tried [Observable Framework](https://observablehq.com/framework/) a bit, and even though I liked some parts of it I landed on it not being an ideal fit in this case. Primarily because I found it to be significantly less complex setup to just fetch the data used in the visualization layer directly from Motherduck, as opposed to loading all data into the front-end itself on deploy time (Framework data loader). Configuring a good data loader setup is quite a bit of overhead, and fetching data directly from Motherduck from the _front end_ exposes tokens in the browser which is not a good idea even though the static site would have been non-public. In addition, I just found the devex for developing tables and charts exactly how I want them much better in Streamlit than in Observable Framework (very limited help from the IDE in markdown docuements, for example, was a source of frustration).
+~~- [ ] Use [Malloy](https://docs.malloydata.dev/documentation/) for the semantic layer/metrics definitions, which will be used by the Observable Framework front-end.~~
+  - UPDATE: for the as-of-now simple transformations needed for this project, a dedicated semantic layer was found excessive and unnecessary.
+- [x] Orchestrate statistical and machine learning models with [dagster](https://dagster.io/) running on Github Actions and save results to Motherduck DB.
+  - UPDATE: After trying several models, I ended up just using one model, `CatBoostUncertaintyRegressor`, which has high-quality predictions, includes uncertainty intervals, and is easy to work with for both missing values and categorical values.

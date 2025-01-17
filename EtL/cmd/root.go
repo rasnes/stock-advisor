@@ -14,7 +14,14 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "etl",
-	Short: "etl cli for different etl tasks",
+	Short: "ETL pipeline for financial data",
+	Long: `A command line tool for managing ETL (Extract, Transform, Load) operations
+for financial data from Tiingo's APIs, including end-of-day prices and fundamentals data,
+loading the data to DuckDB or MotherDuck tables, as per the config.*.yaml files.
+
+This tool provides commands for:
+- Managing end-of-day price data (eod)
+- Managing fundamental data (fundamentals)`,
 }
 
 func Execute() {
@@ -25,8 +32,14 @@ func Execute() {
 }
 
 func init() {
+	// Remove completion command if it exists
+	if len(rootCmd.Commands()) > 0 {
+		rootCmd.RemoveCommand(rootCmd.Commands()[0])
+	}
+
 	rootCmd.AddCommand(endOfDayCmd)
 	rootCmd.AddCommand(fundamentalsCmd)
+	rootCmd.AddCommand(docsCmd)
 	endOfDayCmd.AddCommand(newDailyCmd())
 	endOfDayCmd.AddCommand(newBackfillCmd())
 }

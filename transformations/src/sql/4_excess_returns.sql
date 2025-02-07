@@ -1,6 +1,3 @@
--- TODO: this table should have primary key (ticker, date) for fast lookups
--- consider making views with relevant columns for each of the prediction periods
--- to provide to the model artifact in streamlit.
 create or replace table fundamentals.excess_returns as (
 with excess_returns as (
    select *,

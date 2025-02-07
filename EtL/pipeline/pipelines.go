@@ -129,7 +129,6 @@ func (p *Pipeline) selectedFundamentals(filter string) ([]string, error) {
 type csvPerTicker func(ticker string) (csv []byte, err error)
 
 func fetchCSVs(tickers []string, fetch csvPerTicker) ([]byte, []string, error) {
-	// TODO: This part should probably have more tailored error handling
 	// Like some HTTP error codes should be ignored (I might not have access).
 	// BUT: it seems the API sends 400 Bad Request with body: None if no access,
 	// which is the same as if the request were incorrect. Not optimal.
@@ -192,8 +191,6 @@ func fetchCSVs(tickers []string, fetch csvPerTicker) ([]byte, []string, error) {
 	return finalCsv, emptyResponses, nil
 }
 
-// TODO: should document all parameters for this method, it has many.
-// TODO: should add some integration tests for this method, with batchsize, skipExisting, and skipTickers populated with different values.
 // fetchFundamentalsData handles fetching and loading fundamentals data (daily or statements)
 // for the specified tickers into DuckDB. If no tickers provided, uses selectedFundamentals().
 // If batchSize > 0, processes tickers in batches to manage memory usage.

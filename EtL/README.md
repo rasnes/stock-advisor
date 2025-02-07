@@ -7,27 +7,6 @@ and appends to the Motherduck table(s).
 
 I prefer to load and transform data with the ELT (Extract, Load, Transform) framework. However, there is often a need for a small transformation between the Extract and the Load step, like cleaning up types filtering out some of the data. This part I like to call the small `t`, i.e. we end up with `EtLT`. For the main Transformations, see the sibling directory `transformations`.
 
-## TODO
-
-- Add docstrings to all functions and methods
-  - Remove redundant explanatory strings by GhatGPT
-
-
-### Maybe
-
-- fetch.GetLastTradingDay should handle response edge cases. Maybe an exponential backoff or
-  sleep if unfamiliar response occurs?
-  // TODO: handle special case with 200 OK and this body: {"detail":"Not found."}
-  // Not sure when it occurs, but might be close to current day's market closing time
-  // E.g. now it is 22:20 in Oslo, Norway and markets closed at 22:00
-  // UPDATE: at 22:40, the API returned data again. My guess is that this is consistent.
-  // Investigate if this timing issue is consistent.
-  // If so, that's good. Much better than this occurring randomly.
-  // Batch jobs should be scheduled to a time when the API is guaranteed to return data.
-  // Sound like 05:00 UTC, or something like that, is a good time.
-- Add backoff functionality for `md:` connections with DuckDB, in case of network failures?
-  - Or make a decorator that wraps backoff on the entire pipeline? I kind of like that pattern.
-
 
 ## Extract
 
@@ -44,9 +23,6 @@ overview of tickers available from Tiingo.
 2. Semi join results form API request to https://api.tiingo.com/tiingo/daily/prices with the
 `selected_us_tickers` VIEW. This filtering makes sure we're not ingesting unneeded data to
 the Motherduck table.
-
-TODO: should the `failed_tickers.csv` be used any way? Currently, I think not, as it will complicate
-things and adding
 
 ## Load
 

@@ -1,8 +1,0 @@
-version: '3'
-
-includes:
-  root:
-    taskfile: ../Taskfile.yaml
-    flatten: true
-    vars:
-      PACKAGE_MANAGER: poetry

@@ -278,8 +278,6 @@ class CatBoostTrainer:
         self.shap_values = shap_values
 
     def shap_beeswarm(self) -> None:
-        # TODO: is it possible to return the plot instead of showing it?
-        # Might not be necessary, creating the plot takes 1.7 seconds on macbook
         if len(self.shap_values) == 0:
             self.get_shap_values()
 
@@ -434,7 +432,6 @@ class CatBoostTrainer:
         ticker = ticker.upper()
 
         # Use df_excess_returns instead of df_preds to get all dates
-        # TODO: optimize the below.
         df_excess = self.df_excess_returns.to_pandas()
         ticker_data = df_excess[df_excess["ticker"] == ticker].copy()
         if len(ticker_data) == 0:
@@ -455,7 +452,6 @@ class CatBoostTrainer:
         actual_values = ticker_data[self.pred_col]
 
         # Drop columns not used in model
-        # TODO: convert to pandas when making X_ticker.
         X_ticker = ticker_data.drop(
             columns=list(self._model_exclude_cols | {self.pred_col})
         )

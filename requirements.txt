@@ -223,7 +223,6 @@ traitlets==5.14.3
     #   nbformat
 typing-extensions==4.12.2
     # via
-    #   altair
     #   ibis-framework
     #   streamlit
 tzdata==2024.2

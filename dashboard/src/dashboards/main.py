@@ -50,9 +50,6 @@ selected_tickers = st.multiselect(
 duck.relative_chart(daily, selected_tickers, date_from, date_to)
 
 
-
-
-
 # Display predictions and uncertainty
 preds = duck.Preds(duck.md_con, duck.md_con.sql(duck.relations["preds_rel"]))
 preds_tickers = list(set(selected_tickers).intersection(set(preds.get_all_tickers())))

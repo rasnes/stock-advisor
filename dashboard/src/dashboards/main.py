@@ -6,7 +6,11 @@ import polars as pl
 
 from utils import duck
 
+# This must be the first Streamlit command
 st.set_page_config(layout="wide")
+
+# Get query parameters
+query_params = st.query_params
 
 md_daily_adjusted = duck.ibis_con.table("daily_adjusted")
 daily = duck.Daily(md_daily_adjusted)
@@ -22,10 +26,27 @@ all_tickers = get_all_tickers()
 
 col1, col2 = st.columns(2)
 
+# Get date parameters from URL or use defaults
+default_from = datetime.date(2024, 1, 1)
+default_to = datetime.datetime.now().date()
+
+# Parse date from query params if available
+try:
+    if "date_from" in query_params:
+        date_from_str = query_params["date_from"]
+        default_from = datetime.datetime.strptime(date_from_str, "%Y-%m-%d").date()
+
+    if "date_to" in query_params:
+        date_to_str = query_params["date_to"]
+        default_to = datetime.datetime.strptime(date_to_str, "%Y-%m-%d").date()
+except ValueError:
+    # If date parsing fails, use defaults
+    pass
+
 with col1:
     date_from = st.date_input(
         label="From",
-        value=datetime.date(2024, 1, 1),
+        value=default_from,
         min_value=datetime.date(1995, 1, 1),
         max_value=datetime.datetime.now()
     )
@@ -33,17 +54,42 @@ with col1:
 with col2:
     date_to = st.date_input(
         label="To",
-        value=datetime.datetime.now(),
+        value=default_to,
         min_value=datetime.date(1995, 1, 1),
         max_value=datetime.datetime.now()
     )
 
-# Multiselect widget
+# Update query params with selected dates
+query_params["date_from"] = date_from.strftime("%Y-%m-%d")
+query_params["date_to"] = date_to.strftime("%Y-%m-%d")
+
+# Get default tickers from query params if available
+default_tickers = ["AAPL", "GOOGL"]
+if "tickers" in query_params:
+    param_tickers = query_params["tickers"].split(",")
+    # Verify these tickers exist in our dataset
+    default_tickers = [ticker for ticker in param_tickers if ticker in all_tickers.ticker.to_list()]
+    if not default_tickers:  # If none of the tickers are valid, use the original defaults
+        default_tickers = ["AAPL", "GOOGL"]
+
+# Initialize session state for ticker selection
+if "ticker_selection" not in st.session_state:
+    st.session_state.ticker_selection = default_tickers
+
+# Define callback function to update query params
+def update_ticker_params():
+    if st.session_state.ticker_select:
+        query_params["tickers"] = ",".join(st.session_state.ticker_select)
+    elif "tickers" in query_params:
+        del query_params["tickers"]
+
+# Multiselect widget with callback
 selected_tickers = st.multiselect(
     label="Select tickers",
     options=all_tickers.ticker,
-    default=["AAPL", "GOOGL"],
+    default=default_tickers,
     key="ticker_select",
+    on_change=update_ticker_params
 )
 
 # Display the chart using the selected tickers

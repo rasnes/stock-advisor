@@ -3,7 +3,11 @@ import polars as pl
 
 from utils import duck
 
+# This must be the first Streamlit command
 st.set_page_config(layout="wide")
+
+# Get query parameters
+query_params = st.query_params
 
 md_preds = duck.md_con.sql(duck.relations["preds_rel"])
 picker = duck.Picker(duck.md_con, md_preds)
@@ -44,8 +48,8 @@ selected_industries = row1_cols[2].multiselect(
 row2_cols = st.columns(2)
 
 # Value range filters
-min_pred_value = float(df_preds_per_horizon["predicted_value"].min())
-max_pred_value = float(df_preds_per_horizon["predicted_value"].max())
+min_pred_value = float(df_preds_per_horizon["predicted_value"].min() or 0)
+max_pred_value = float(df_preds_per_horizon["predicted_value"].max() or 1)
 pred_value_range = row2_cols[0].slider(
     "Predicted Value Range",
     min_value=min_pred_value,
@@ -53,8 +57,8 @@ pred_value_range = row2_cols[0].slider(
     value=(min_pred_value, max_pred_value),
 )
 
-min_std = float(df_preds_per_horizon["predicted_std"].min())
-max_std = float(df_preds_per_horizon["predicted_std"].max())
+min_std = float(df_preds_per_horizon["predicted_std"].min() or 0)
+max_std = float(df_preds_per_horizon["predicted_std"].max() or 1)
 std_range = row2_cols[1].slider(
     "Standard Deviation Range",
     min_value=min_std,
@@ -77,15 +81,56 @@ df_filtered = df_preds_per_horizon.filter(
     )
 )
 
+# Check if we have selected pairs in query params
+selected_rows = []
+if "selected_pairs" in query_params:
+    selected_pairs_str = query_params["selected_pairs"].split(",")
+    selected_pairs = [pair.split(":") for pair in selected_pairs_str if ":" in pair]
+
+    # Find the row indices for these ticker-horizon pairs
+    for i, row in enumerate(df_filtered.iter_rows(named=True)):
+        for ticker, horizon in selected_pairs:
+            if row["ticker"] == ticker and row["pred_horizon"] == horizon:
+                selected_rows.append(i)
+
+# Create the dataframe
 event = st.dataframe(
     df_filtered,
     use_container_width=True,
     selection_mode="multi-row",
-    on_select="rerun"
+    on_select="rerun",
+    key="stock_table"
 )
 
-rows: list = event.selection["rows"]
+# Get the selected rows from the event
+event_rows = event["selection"]["rows"]
 
+# If we have rows from the URL but none from the UI, use the URL rows
+if selected_rows and not event_rows:
+    rows = selected_rows
+    # Show a message that we're using selections from the URL
+    st.info(f"Using selections from shared URL: {query_params['selected_pairs']}")
+else:
+    # Otherwise use the rows from the UI selection
+    rows = event_rows
+
+# Update query params with selected ticker-horizon pairs
+if rows:
+    df_selection = (
+        df_filtered
+        .with_row_index()
+        .filter(pl.col("index").is_in(rows))
+        .drop("index")
+    )
+
+    # Update query params with selected ticker-horizon pairs
+    selected_pairs = [f"{row['ticker']}:{row['pred_horizon']}" for row in df_selection.iter_rows(named=True)]
+    query_params["selected_pairs"] = ",".join(selected_pairs)
+elif "selected_pairs" in query_params and not rows:
+    # Clear the selection if no rows are selected
+    del query_params["selected_pairs"]
+
+# Process the selection
 df_selection = (
     df_filtered
     .with_row_index()
@@ -96,7 +141,7 @@ df_selection = (
 if len(rows) > 0:
     st.dataframe(df_selection)
 
-    picked: list[list[str]] = (
+    picked = (
         df_selection
         .select(["ticker", "pred_col"])
         .rows()

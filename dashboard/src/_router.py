@@ -50,6 +50,11 @@ dashboards = dict(
         title="Stock Picker",
         icon=":material/dashboard:",
     ),
+    docs=st.Page(
+        "dashboards/docs.py",
+        title="Documentation",
+        icon=":material/dashboard:",
+    ),
 )
 
 notebooks = dict(

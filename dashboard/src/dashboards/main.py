@@ -90,3 +90,6 @@ st.dataframe(
         "url": st.column_config.LinkColumn("Yahoo Finance", display_text="Link"),
     },
 )
+
+# Show the raw data below
+st.dataframe(preds.forecasts.sort(["pred_col", "ticker"]))

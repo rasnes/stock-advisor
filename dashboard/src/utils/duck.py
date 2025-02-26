@@ -79,6 +79,21 @@ def relative_chart(daily: Daily, selected_tickers, date_from, date_to) -> None:
 
 relations = {
     "preds_rel": """select * from main.relevant_preds""",
+    "trained_dates": """select distinct trained_date from prod.predictions;""",
+    # OBS: keep the below query in sync with the file in transformations/src/sql/relevant_preds.sql
+    "preds_rel_for_date": """
+    with preds as (
+        select * from main.predictions where trained_date = $trained_date
+    ), with_meta as (
+        from preds
+        left join fundamentals.meta
+            on preds.ticker = upper(meta.ticker)
+        select
+            preds.*, meta.name, meta.sector, meta.industry, meta.sicSector, meta.location, meta.statementLastUpdated
+        where meta.isActive = true
+    )
+    select * from with_meta;
+    """
 }
 
 class Picker:

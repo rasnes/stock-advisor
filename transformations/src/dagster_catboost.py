@@ -9,6 +9,7 @@ from dagster import (
     TableColumn,
     TableSchema,
     define_asset_job,
+    Field,
 )
 import numpy as np
 import polars as pl
@@ -79,10 +80,29 @@ def load_macros(context: AssetExecutionContext) -> None:
 @asset(
     required_resource_keys={"duckdb_config"},
     deps=[load_macros],
+    config_schema={"cutoff_date": Field(str, is_required=False, default_value="current_date")}
 )
 def table_wide_statements(context: AssetExecutionContext) -> None:
     db_config = context.resources.duckdb_config
-    query_duckdb_file(Path("src/sql/1_wide_statements.sql"), db_config)
+
+    # Get the cutoff date from config, defaulting to current_date if not provided
+    cutoff_date = context.op_config.get("cutoff_date", "current_date")
+
+    # Read the SQL file
+    with open("src/sql/1_wide_statements.sql", "r") as f:
+        sql = f.read()
+
+    # If cutoff_date is not a SQL function (like current_date), add quotes
+    if cutoff_date != "current_date" and not cutoff_date.startswith("'") and not cutoff_date.endswith("'"):
+        cutoff_date = f"'{cutoff_date}'"
+
+    # Replace the parameter placeholder with the actual value
+    modified_sql = sql.replace("where date <= $cutoff_date", f"where date <= {cutoff_date}")
+
+    # Execute the modified SQL
+    conn = duckdb.connect(database=db_config["database"], read_only=False)
+    conn.execute(modified_sql)
+    conn.close()
 
 
 @asset(

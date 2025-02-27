@@ -9,6 +9,7 @@ from dagster import (
     TableColumn,
     TableSchema,
     define_asset_job,
+    Field,
 )
 import numpy as np
 import polars as pl
@@ -79,10 +80,29 @@ def load_macros(context: AssetExecutionContext) -> None:
 @asset(
     required_resource_keys={"duckdb_config"},
     deps=[load_macros],
+    config_schema={"cutoff_date": Field(str, is_required=False, default_value="current_date")}
 )
 def table_wide_statements(context: AssetExecutionContext) -> None:
     db_config = context.resources.duckdb_config
-    query_duckdb_file(Path("src/sql/1_wide_statements.sql"), db_config)
+
+    # Get the cutoff date from config, defaulting to current_date if not provided
+    cutoff_date = context.op_config.get("cutoff_date", "current_date")
+
+    # Read the SQL file
+    with open("src/sql/1_wide_statements.sql", "r") as f:
+        sql = f.read()
+
+    # If cutoff_date is not a SQL function (like current_date), add quotes
+    if cutoff_date != "current_date" and not cutoff_date.startswith("'") and not cutoff_date.endswith("'"):
+        cutoff_date = f"'{cutoff_date}'"
+
+    # Replace the parameter placeholder with the actual value
+    modified_sql = sql.replace("where date <= $cutoff_date", f"where date <= {cutoff_date}")
+
+    # Execute the modified SQL
+    conn = duckdb.connect(database=db_config["database"], read_only=False)
+    conn.execute(modified_sql)
+    conn.close()
 
 
 @asset(
@@ -142,6 +162,10 @@ def excess_returns(context: AssetExecutionContext) -> Output:
 def _train_model_base(context: AssetExecutionContext, excess_returns: pl.DataFrame, pred_col: str) -> Output:
     """Base training function used by all prediction column variants."""
     db_config = context.resources.duckdb_config
+
+    # Get the cutoff date from the context if it was provided
+    cutoff_date = context.op_config.get("cutoff_date", None)
+
     conn = duckdb.connect(database=db_config["database"], read_only=True)
     seed = np.random.randint(0, 10)
     boost = CatBoostTrainer(
@@ -149,6 +173,7 @@ def _train_model_base(context: AssetExecutionContext, excess_returns: pl.DataFra
         df_excess_returns=excess_returns,
         pred_col=pred_col,
         seed=seed,
+        cutoff_date=cutoff_date  # Pass the cutoff date to the trainer
     )
     boost.df_train_df()
     boost.split_train_test_pools()
@@ -165,6 +190,7 @@ def _train_model_base(context: AssetExecutionContext, excess_returns: pl.DataFra
             "model_test_rmse": MetadataValue.float(float(round(boost.test_rmse, 4))),
             "model_seed": MetadataValue.int(seed),
             "model_timestamp": MetadataValue.text(boost.train_timestamp.isoformat()),
+            "model_cutoff_date": MetadataValue.text(cutoff_date if cutoff_date else "current_date"),
             "model_best_iteration": MetadataValue.int(int(boost.model.best_iteration_)),
             "num_records": df.height,
             "row_count": MetadataValue.int(df.height),
@@ -175,15 +201,24 @@ def _train_model_base(context: AssetExecutionContext, excess_returns: pl.DataFra
     )
 
 
-@asset(required_resource_keys={"duckdb_config"})
+@asset(
+    required_resource_keys={"duckdb_config"},
+    config_schema={"cutoff_date": Field(str, is_required=False, default_value="current_date")}
+)
 def train_12m(context: AssetExecutionContext, excess_returns: pl.DataFrame) -> Output:
     return _train_model_base(context, excess_returns, "excess_return_ln_12m")
 
-@asset(required_resource_keys={"duckdb_config"})
+@asset(
+    required_resource_keys={"duckdb_config"},
+    config_schema={"cutoff_date": Field(str, is_required=False, default_value="current_date")}
+)
 def train_24m(context: AssetExecutionContext, excess_returns: pl.DataFrame) -> Output:
     return _train_model_base(context, excess_returns, "excess_return_ln_24m")
 
-@asset(required_resource_keys={"duckdb_config"})
+@asset(
+    required_resource_keys={"duckdb_config"},
+    config_schema={"cutoff_date": Field(str, is_required=False, default_value="current_date")}
+)
 def train_36m(context: AssetExecutionContext, excess_returns: pl.DataFrame) -> Output:
     return _train_model_base(context, excess_returns, "excess_return_ln_36m")
 

@@ -10,7 +10,7 @@ from catboost import CatBoostRegressor, Pool, EFstrType
 import matplotlib.pyplot as plt
 import shap
 from datetime import datetime
-
+import re
 
 class CatBoostTrainer:
     """Prepares data from DuckDB for training."""
@@ -21,11 +21,13 @@ class CatBoostTrainer:
         df_excess_returns: pl.DataFrame,
         pred_col: str,
         seed: int,
+        cutoff_date: str | None = None,
     ) -> None:
         """Init with DuckDB connection."""
         self.conn: duckdb.DuckDBPyConnection = conn
         self.pred_col: str = pred_col
         self.seed: int = seed
+        self.cutoff_date: str | None = cutoff_date
         self._all_exclude_cols: Set[str] = {
             "name",
             "excess_return_ln_6m",
@@ -74,7 +76,6 @@ class CatBoostTrainer:
         Returns: pd.DataFrame: Training data with specified cols excluded
         """
         exclude_cols = self._all_exclude_cols.difference({self.pred_col})
-        print(exclude_cols)
         exclude_cols_str = ",\n".join(exclude_cols)
 
         self.df_preds = self.conn.query(f"""
@@ -395,7 +396,14 @@ class CatBoostTrainer:
             }
         )
 
-        # Rest of transformations
+        # Before the with_columns call, determine the date to use
+        # Then in with_columns, just use the pre-computed value
+        if self.cutoff_date is not None and re.match(r"^'?\d{4}-\d{2}-\d{2}'?$", self.cutoff_date):
+            date_str = re.search(r"(\d{4}-\d{2}-\d{2})", self.cutoff_date).group(1)
+            trained_date = pl.lit(date_str).cast(pl.Date)
+        else:
+            trained_date = pl.lit(self.train_timestamp.date().isoformat()).cast(pl.Date)
+
         results = (
             results
             # First add var_preds as a column
@@ -416,9 +424,7 @@ class CatBoostTrainer:
                     pl.lit(self.train_timestamp.isoformat())
                     .cast(pl.Datetime)
                     .alias("trained_at"),
-                    pl.lit(self.train_timestamp.date().isoformat())
-                    .cast(pl.Date)
-                    .alias("trained_date"),
+                    trained_date.alias("trained_date"),
                 ]
             )
             .drop("var_preds")  # Remove temporary column

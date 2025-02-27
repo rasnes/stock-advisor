@@ -57,7 +57,7 @@ class Daily:
             / t_agg.first_adjClose.first().over(  # type: ignore
                 ibis.window(group_by="ticker", order_by="date")
             ),
-            close=t_agg.close.cast('double'),  # Cast to double to ensure it's treated as a number
+            adjClose=t_agg.first_adjClose.cast('double'),  # Cast to double to ensure it's treated as a number
         )
 
 
@@ -71,7 +71,7 @@ def relative_chart(daily: Daily, selected_tickers, date_from, date_to) -> None:
             x="date",
             y="relative",
             color="ticker",
-            tooltip=["ticker", "date", "relative", alt.Tooltip("close:Q", title="Close", format=",.2f")]
+            tooltip=["ticker", "date", "relative", alt.Tooltip("adjClose:Q", title="adjClose", format=",.2f")]
         )
     )
     st.altair_chart(c, use_container_width=True)

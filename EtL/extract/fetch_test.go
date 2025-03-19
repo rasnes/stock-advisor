@@ -3,7 +3,7 @@ package extract
 import (
 	"bytes"
 	"github.com/hashicorp/go-retryablehttp"
-	"github.com/rasnes/tiingo-duckdb-framework/EtL/config"
+	"github.com/rasnes/stock-advisor/EtL/config"
 	"github.com/stretchr/testify/assert"
 	"log/slog"
 	"net/http"

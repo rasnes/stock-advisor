@@ -7,8 +7,8 @@ import (
 	"log/slog"
 
 	"github.com/joho/godotenv"
-	"github.com/rasnes/tiingo-duckdb-framework/EtL/config"
-	"github.com/rasnes/tiingo-duckdb-framework/EtL/logger"
+	"github.com/rasnes/stock-advisor/EtL/config"
+	"github.com/rasnes/stock-advisor/EtL/logger"
 	"github.com/spf13/cobra"
 )
 

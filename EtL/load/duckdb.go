@@ -12,10 +12,10 @@ import (
 	"strings"
 	"text/template"
 
-	_ "github.com/marcboeker/go-duckdb"
-	duckdb "github.com/marcboeker/go-duckdb"
-	"github.com/rasnes/tiingo-duckdb-framework/EtL/config"
-	"github.com/rasnes/tiingo-duckdb-framework/EtL/constants"
+	_ "github.com/marcboeker/go-duckdb/v2"
+	duckdb "github.com/marcboeker/go-duckdb/v2"
+	"github.com/rasnes/stock-advisor/EtL/config"
+	"github.com/rasnes/stock-advisor/EtL/constants"
 )
 
 type DuckDB struct {

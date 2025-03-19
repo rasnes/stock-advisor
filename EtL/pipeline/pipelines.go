@@ -9,11 +9,11 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/rasnes/tiingo-duckdb-framework/EtL/config"
-	"github.com/rasnes/tiingo-duckdb-framework/EtL/constants"
-	"github.com/rasnes/tiingo-duckdb-framework/EtL/extract"
-	"github.com/rasnes/tiingo-duckdb-framework/EtL/load"
-	"github.com/rasnes/tiingo-duckdb-framework/EtL/utils"
+	"github.com/rasnes/stock-advisor/EtL/config"
+	"github.com/rasnes/stock-advisor/EtL/constants"
+	"github.com/rasnes/stock-advisor/EtL/extract"
+	"github.com/rasnes/stock-advisor/EtL/load"
+	"github.com/rasnes/stock-advisor/EtL/utils"
 	"github.com/sourcegraph/conc/iter"
 )
 

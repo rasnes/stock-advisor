@@ -1,7 +1,7 @@
 package load
 
 import (
-	"github.com/rasnes/tiingo-duckdb-framework/EtL/config"
+	"github.com/rasnes/stock-advisor/EtL/config"
 	"github.com/stretchr/testify/assert"
 	"log/slog"
 	"os"

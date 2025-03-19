@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/rasnes/tiingo-duckdb-framework/EtL/cmd"
+	"github.com/rasnes/stock-advisor/EtL/cmd"
 )
 
 func main() {

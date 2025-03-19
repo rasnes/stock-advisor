@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rasnes/tiingo-duckdb-framework/EtL/pipeline"
-	"github.com/rasnes/tiingo-duckdb-framework/EtL/utils"
+	"github.com/rasnes/stock-advisor/EtL/pipeline"
+	"github.com/rasnes/stock-advisor/EtL/utils"
 	"github.com/spf13/cobra"
 )
 

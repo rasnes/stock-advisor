@@ -11,7 +11,7 @@ import (
 	"time"
 
 	retryablehttp "github.com/hashicorp/go-retryablehttp"
-	"github.com/rasnes/tiingo-duckdb-framework/EtL/config"
+	"github.com/rasnes/stock-advisor/EtL/config"
 )
 
 type TiingoClient struct {

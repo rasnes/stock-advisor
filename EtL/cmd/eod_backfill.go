@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rasnes/tiingo-duckdb-framework/EtL/pipeline"
+	"github.com/rasnes/stock-advisor/EtL/pipeline"
 	"github.com/spf13/cobra"
 )
 

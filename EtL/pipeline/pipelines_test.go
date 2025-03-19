@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rasnes/tiingo-duckdb-framework/EtL/config"
-	"github.com/rasnes/tiingo-duckdb-framework/EtL/utils"
+	"github.com/rasnes/stock-advisor/EtL/config"
+	"github.com/rasnes/stock-advisor/EtL/utils"
 	"github.com/stretchr/testify/assert"
 )
 

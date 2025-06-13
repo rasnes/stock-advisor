@@ -1,17 +1,17 @@
 name: prod__append-last-trading-day
 
 on:
-  schedule:
-    - cron: '0 4,7 * * 2-6'  # Runs at 04:00 and 07:00 UTC on Tue, Wed, Thu, Fri, Sat
-      # Why not the rerun at 07:00 conditional on 04:00 pipeline failure? Since
-      # I have experienced that the API has response 200 OK but with incorrect data.
-      # This issue seems to occur (hopefully only) the first hour or so after US
-      # market closing hours. I guess Tiingo batch jobs for updating the data is running
-      # behind the scenes. Better API behavior in that case is either empty response
-      # {"content": "please wait until HH:MM UTC for available data"} or an HTTP 4xx
-      # error code with an explantory body. Risk of inaccurate data is the worst!
-      # So, I'll schedule a rerun of the exact same workflow some hours later, which should,
-      # hopefully improve reliability of ingest job both wrt. API connectivity and data quality.
+  # schedule:
+  #   - cron: '0 4,7 * * 2-6'  # Runs at 04:00 and 07:00 UTC on Tue, Wed, Thu, Fri, Sat
+  #     # Why not the rerun at 07:00 conditional on 04:00 pipeline failure? Since
+  #     # I have experienced that the API has response 200 OK but with incorrect data.
+  #     # This issue seems to occur (hopefully only) the first hour or so after US
+  #     # market closing hours. I guess Tiingo batch jobs for updating the data is running
+  #     # behind the scenes. Better API behavior in that case is either empty response
+  #     # {"content": "please wait until HH:MM UTC for available data"} or an HTTP 4xx
+  #     # error code with an explantory body. Risk of inaccurate data is the worst!
+  #     # So, I'll schedule a rerun of the exact same workflow some hours later, which should,
+  #     # hopefully improve reliability of ingest job both wrt. API connectivity and data quality.
   workflow_dispatch:
 
 jobs:
